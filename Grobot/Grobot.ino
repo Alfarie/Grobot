@@ -3,7 +3,7 @@
 #include<EEPROM.h>
 
 #define CS 48
-LiquidCrystal_I2C lcd(0x3F, 20, 4);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define DS1307_I2C_ADDRESS 0x68
 
 #define MAIN 0
@@ -139,21 +139,21 @@ void Date_Set() {
 
 
 
-void SET_DATE_disp(){
-  lcd.setCursor(0,0);
+void SET_DATE_disp() {
+  lcd.setCursor(0, 0);
   lcd.print("Date-Time Setting");
-  lcd.setCursor(5,2);
+  lcd.setCursor(5, 2);
   lcd.print("Date Time");
-  if( isSet()){
+  if ( isSet()) {
     delay(300);
     lcd.clear();
     Date_Set();
 
   }
-  if( isReset()){
+  if ( isReset()) {
     delay(300);
     lcd.clear();
-    state == MAIN;
+    state = MAIN;
   }
 }
 
@@ -181,7 +181,7 @@ void loop() {
   else if (state == TIMER) {
     TIMER_disp();
   }
-  else if(state == SET_DATE){
+  else if (state == SET_DATE) {
     SET_DATE_disp();
   }
 
@@ -191,7 +191,6 @@ void loop() {
 
     state++;
     state = (state <= SET_DATE) ? state : 0;
-    Serial.println("down"  + String(state));
   }
   if (isDown()) {
     delay(300);
@@ -199,10 +198,14 @@ void loop() {
 
     state--;
     state = (state >= 0 ) ? state : SET_DATE;
-    Serial.println("up"  + String(state));
+  }
+  if (isSet()) {
+    delay(300);
   }
   relay_cOntrol();
 }
+
+
 
 void relay_cOntrol() {
   for (byte i =  0 ; i < 4 ; i++) {
@@ -293,6 +296,13 @@ void relayInit() {
   pinMode( RELAY01 , OUTPUT);
   pinMode( RELAY02 , OUTPUT);
   pinMode( RELAY03 , OUTPUT);
+  
+  pinMode(A0 , INPUT);
+  pinMode(A1 , INPUT);
+  pinMode(A2 , INPUT);
+  pinMode(A3 , INPUT);
+  pinMode(A4 , INPUT);
+  pinMode(A5 , INPUT);
 
   digitalWrite(RELAY01 , HIGH);
   digitalWrite(RELAY02 , HIGH);
@@ -303,34 +313,39 @@ void relayInit() {
 
 
 void TIMER_disp() {
-  lcd.setCursor(0, 0); lcd.print("TIMER Display");
+  lcd.setCursor(0, 0); lcd.print("Timer Display");
   int8_t st = 0;
   while (true) {
     if (st == 0) {
-      lcd.setCursor(0, 0); lcd.print("TIMER Display");
-      lcd.setCursor(5, 2); lcd.print("FAN COnFIG");
+      
+      lcd.setCursor(0, 0); lcd.print("Timer Display");
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(5, 2); lcd.print("Fan Config");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == 1) {
-      lcd.setCursor(0, 0); lcd.print("TIMER Display");
-      lcd.setCursor(5, 2); lcd.print("PUMP COnFIG");
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(0, 0); lcd.print("Timer Display");
+      lcd.setCursor(5, 2); lcd.print("Pump Config");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == 2) {
-      lcd.setCursor(0, 0); lcd.print("TIMER Display");
-      lcd.setCursor(5, 2); lcd.print("LED COnFIG");
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(0, 0); lcd.print("Timer Display");
+      lcd.setCursor(5, 2); lcd.print("LED Config");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     if (isLeft()) {
       delay(300);
       lcd.clear();
       st++;
       st = (st > 2) ? 0 : st;
-      Serial.println(st);
     }
     if (isRight()) {
       delay(300);
       lcd.clear();
       st--;
       st = (st < 0) ? 2 : st;
-      Serial.println(st);
     }
     if (isSet()) {
       delay(300);
@@ -353,13 +368,19 @@ void TIMER_setting(int mode) {
     else if (mode == 2) lcd.print("LED CONFIG");
 
     if (st == 0) {
-      lcd.setCursor(3, 2); lcd.print("SHOW TIMER");
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(5, 2); lcd.print("SHOW TIMER");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == 1) {
-      lcd.setCursor(3, 2); lcd.print("ADD TIMER");
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(5, 2); lcd.print("ADD TIMER");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == 2) {
+      lcd.setCursor(0,2); lcd.print("<<");
       lcd.setCursor(3, 2); lcd.print("DELETE TIMER");
+      lcd.setCursor(18,2); lcd.print(">>");
     }
 
     if (isLeft()) {
@@ -389,7 +410,6 @@ void TIMER_setting(int mode) {
     }
 
     if (isReset()) {
-      Serial.println("RESET");
       delay(300);
       lcd.clear();
       break;
@@ -407,11 +427,14 @@ void DeleteTimer(int mode) {
   }
   else if (mode == 1) {
     pump_timer_size = 0;
+    EEPROM.write(PUMP_TIMER_SIZE_ADDR , 0);
   }
   else if (mode == 2) {
     led_timer_size = 0;
+    EEPROM.write(LED_TIMER_SIZE_ADDR , 0);
   }
   lcd.setCursor(5, 2); lcd.print("removing...");
+  
   delay(500);
   lcd.clear();
 }
@@ -507,7 +530,6 @@ void AddTimer(byte mode) {
     else if (isSet()) {
       delay(300);
       if (CheckTimerAndSave(timer , mode)) {
-        Serial.println("success");
         for (i = 0 ; i < fan_timer_size ; i++) {
           for (j = 0 ; j < 4 ; j++) {
             Serial.print(" " + String(fan_timer_list[i][j]));
@@ -569,16 +591,23 @@ void FAN_disp() {
     lcd.setCursor(0, 0);
     lcd.print("Fan Display");
     if (st == On) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(On));
+      lcd.setCursor(18,2); lcd.print(">>");
+      
     }
     else if (st == Off ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(Off));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == Program  ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(6, 2);
       lcd.print(getStatusString(Program));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     if (isLeft()) {
       delay(300);
@@ -612,18 +641,25 @@ void PUMP_disp() {
   int st = relay_status[1];
   while (true) {
     lcd.setCursor(0, 0);
-    lcd.print("PUMP Display");
+    lcd.print("Pump Display");
     if (st == On) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(On));
+      lcd.setCursor(18,2); lcd.print(">>");
+      
     }
     else if (st == Off ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(Off));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == Program  ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(6, 2);
       lcd.print(getStatusString(Program));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     if (isLeft()) {
       delay(300);
@@ -656,16 +692,23 @@ void LED_disp() {
     lcd.setCursor(0, 0);
     lcd.print("LED Display");
     if (st == On) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(On));
+      lcd.setCursor(18,2); lcd.print(">>");
+      
     }
     else if (st == Off ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(8, 2);
       lcd.print(getStatusString(Off));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     else if (st == Program  ) {
-      lcd.setCursor(5, 2);
+      lcd.setCursor(0,2); lcd.print("<<");
+      lcd.setCursor(6, 2);
       lcd.print(getStatusString(Program));
+      lcd.setCursor(18,2); lcd.print(">>");
     }
     if (isLeft()) {
       delay(300);
@@ -713,29 +756,28 @@ byte bcdToDec(byte val) {
   return ( (val / 16 * 10) + (val % 16) );
 }
 
-
 void spite_logo() {
   lcd.setCursor(0, 0); lcd.print("iNtel-Agro ");
   lcd.setCursor(0, 2); lcd.print(" Smart cOntrol V1.0");
 }
 
 bool isLeft() {
-  return (analogRead(LEFT) < 500) ? true : false;
+  return (digitalRead(A2) == LOW) ? true : false;
 }
 bool isRight() {
-  return (analogRead(RIGHT) < 500) ? true : false;
+  return (digitalRead(A3) == LOW) ? true : false;
 }
 bool isUp() {
-  return (analogRead(UP) < 500) ? true : false;
+  return (digitalRead(A0) == LOW) ? true : false;
 }
 bool isDown() {
-  return (analogRead(DOWN) < 500) ? true : false;
+  return (digitalRead(A1) == LOW) ? true : false;
 }
 bool isSet() {
-  return (digitalRead(SET) == LOW) ? true : false;
+  return (digitalRead(A4) == LOW) ? true : false;
 }
 bool isReset() {
-  return (digitalRead(RESET) == LOW) ? true : false;
+  return (digitalRead(A5) == LOW) ? true : false;
 }
 
 String getStatusString(int relay_status) {
@@ -750,7 +792,6 @@ bool NextPage() {
     lcd.clear();
     state++;
     state = (state < SET_DATE) ? state : 0;
-    Serial.println("isUp");
     return true;
   }
   if (isDown()) {
@@ -758,14 +799,13 @@ bool NextPage() {
     lcd.clear();
     state--;
     state = (state >= 0 ) ? state : 3;
-    Serial.println("isDown");
     return true;
   }
   if (isReset()) {
     delay(300);
     lcd.clear();
+    Serial.println("RESET");
     state = MAIN;
-    Serial.println("isReset");
     return true;
   }
   return false;
