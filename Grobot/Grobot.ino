@@ -481,6 +481,12 @@ void AddTimer(byte mode) {
     }
   }
 
+  if(timer_size > 0){
+    timer[0] = timer_list[timer_size-1][2];
+    timer[1] = timer_list[timer_size-1][3] +1;
+    index=2;
+  }
+
   lcd.setCursor(0, 0);
   lcd.print("Add Timer");
   if (mode == 0) {
@@ -497,7 +503,6 @@ void AddTimer(byte mode) {
     lcd.print("Add Timer");
     lcd.setCursor(2, 2);
     lcd.print(blinkStrTimer(timer , index));
-
     if (isRight()) {
       delay(300);
       index++;
