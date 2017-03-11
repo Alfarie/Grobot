@@ -227,9 +227,9 @@ void relay_cOntrol() {
       if ( i == 2) digitalWrite(RELAY03 , HIGH);
     }
     else if (relay_status[i] == Program) {
-      checkTimerFan();
-      checkTimerPump();
-      checkTimerLed();
+      if(i == 0 ) checkTimerFan();
+      if(i == 1) checkTimerPump();
+      if(i == 2) checkTimerLed();
     }
   }
 }
@@ -1076,13 +1076,15 @@ void checkTimerFan() {
     int stopTimerMin =  fan_timer_list[i][2] * 60 + fan_timer_list[i][3];
     if (currentMin >= startTimerMin && currentMin < stopTimerMin) {
       flag = true;
+      break;
     }
     index++;
   }
   if (flag) {
+    //index--;
     digitalWrite(RELAY01 , LOW);
-    Serial.println("LED : " + String(fan_timer_list[index][0]) + ":" + String(fan_timer_list[index][1]) + "-" +
-                   String(fan_timer_list[index][2] ) + ":" + String(fan_timer_list[index][3]));
+//    Serial.println("FAN : " + String(fan_timer_list[index][0]) + ":" + String(fan_timer_list[index][1]) + "-" +
+//                   String(fan_timer_list[index][2] ) + ":" + String(fan_timer_list[index][3]));
   }
   else {
     digitalWrite(RELAY01 , HIGH);
@@ -1098,14 +1100,16 @@ void checkTimerPump() {
     int stopTimerMin =  pump_timer_list[i][2] * 60 + pump_timer_list[i][3];
     if (currentMin >= startTimerMin && currentMin < stopTimerMin) {
       flag = true;
+      break;
     }
     index++;
   }
   if (flag) {
+    //index--;
     digitalWrite(RELAY02 , LOW);
 
-    Serial.println("LED : " + String(pump_timer_list[index][0]) + ":" + String(pump_timer_list[index][1]) + "-" +
-                   String(pump_timer_list[index][2] ) + ":" + String(pump_timer_list[index][3]));
+//    Serial.println("Pump : " + String(pump_timer_list[index][0]) + ":" + String(pump_timer_list[index][1]) + "-" +
+//                   String(pump_timer_list[index][2] ) + ":" + String(pump_timer_list[index][3]));
   }
   else {
     digitalWrite(RELAY02 , HIGH);
@@ -1126,10 +1130,10 @@ void checkTimerLed() {
     index++;
   }
   if (flag) {
-    index--;
+    //index--;
     digitalWrite(RELAY03 , LOW);
-    Serial.println("LED : " + String(led_timer_list[index][0]) + ":" + String(led_timer_list[index][1]) + "-" +
-                   String(led_timer_list[index][2] ) + ":" + String(led_timer_list[index][3]) );
+//    Serial.println("LED : " + String(led_timer_list[index][0]) + ":" + String(led_timer_list[index][1]) + "-" +
+//                   String(led_timer_list[index][2] ) + ":" + String(led_timer_list[index][3]) );
   }
   else {
     digitalWrite(RELAY03 , HIGH);
