@@ -33,8 +33,6 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 #define PUMP_TIMER_SIZE_ADDR 5
 #define LED_TIMER_SIZE_ADDR 6
 
-
-
 const int On = 129;
 const int Off = 128;
 const int Program = 130;
@@ -211,12 +209,21 @@ void relay_cOntrol() {
   for (byte i =  0 ; i < 4 ; i++) {
     if (relay_status[i] == On) {
       if ( i == 0) digitalWrite(RELAY01 , LOW);
-      if ( i == 1) digitalWrite(RELAY02 , LOW);
+      
+      if(digitalRead(A6) == HIGH){
+        if ( i == 1) digitalWrite(RELAY02 , LOW);
+      }
+      else{
+        if ( i == 1) digitalWrite(RELAY02 , HIGH); 
+      }
+      
       if ( i == 2) digitalWrite(RELAY03 , LOW);
     }
     else if (relay_status[i] == Off) {
       if ( i == 0) digitalWrite(RELAY01 , HIGH);
+      
       if ( i == 1) digitalWrite(RELAY02 , HIGH);
+      
       if ( i == 2) digitalWrite(RELAY03 , HIGH);
     }
     else if (relay_status[i] == Program) {
@@ -290,13 +297,6 @@ void memoryInit() {
 void buttOnInit() {
   pinMode(SET , INPUT);
   pinMode(RESET , INPUT);
-}
-void relayInit() {
-
-  pinMode( RELAY01 , OUTPUT);
-  pinMode( RELAY02 , OUTPUT);
-  pinMode( RELAY03 , OUTPUT);
-  
   pinMode(A0 , INPUT);
   pinMode(A1 , INPUT);
   pinMode(A2 , INPUT);
@@ -304,6 +304,14 @@ void relayInit() {
   pinMode(A4 , INPUT);
   pinMode(A5 , INPUT);
 
+  pinMode(A6 , INPUT);
+}
+void relayInit() {
+
+  pinMode( RELAY01 , OUTPUT);
+  pinMode( RELAY02 , OUTPUT);
+  pinMode( RELAY03 , OUTPUT);
+  
   digitalWrite(RELAY01 , HIGH);
   digitalWrite(RELAY02 , HIGH);
   digitalWrite(RELAY03 , HIGH);
@@ -581,7 +589,13 @@ void MAIN_disp() {
   displayTime();
 
   lcd.setCursor(0, 1); lcd.print("FAN: " + getStatusString(relay_status[0]));
-  lcd.setCursor(0, 2); lcd.print("PUMP: " + getStatusString(relay_status[1]));
+  if(digitalRead(A6) == HIGH){
+    lcd.setCursor(0, 2); lcd.print("PUMP: " + getStatusString(relay_status[1]));
+  }
+  else{
+    lcd.setCursor(0, 2); lcd.print("PUMP: LOW");
+  }
+    
   lcd.setCursor(0, 3); lcd.print("LED: " + getStatusString(relay_status[2]));
 }
 
