@@ -598,7 +598,7 @@ void MAIN_disp() {
     lcd.setCursor(0, 2); lcd.print("PUMP: " + getStatusString(relay_status[1]));
   }
   else{
-    lcd.setCursor(0, 2); lcd.print("PUMP: LOW");
+    lcd.setCursor(0, 2); lcd.print("PUMP: LOW      ");
   }
     
   lcd.setCursor(0, 3); lcd.print("LED: " + getStatusString(relay_status[2]));
@@ -694,6 +694,7 @@ void PUMP_disp() {
     }
     if (isSet()) {
       delay(300);
+      lcd.clear();
       relay_status[1] = st;
       EEPROM.write(PUMP_STATE_ADDR , st);
       state = MAIN;
@@ -743,6 +744,7 @@ void LED_disp() {
     }
     if (isSet()) {
       delay(300);
+      lcd.clear();
       relay_status[2] = st;
       EEPROM.write(LED_STATE_ADDR , st);
       state = MAIN;
